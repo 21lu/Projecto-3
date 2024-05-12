@@ -1,0 +1,466 @@
+﻿var master = {
+    init: function () {
+        'use strict'
+
+        master.initCookies();
+        master.initMasterResize();
+        master.bindInputHandler();
+
+        $(".lbl_lingua_atual").click(function () {
+            $(".lang ul").slideToggle();
+            setTimeout(function () {
+                $(".lang ul").slideUp();
+            }, 3000)
+        })
+
+        $(".pesquisa .icon").click(function () {
+            var posLogo = $(".logo").offset().left + $(".logo").outerWidth(),
+                pospesq = $(".pesquisa").offset().left,
+                totalBarraPesq = pospesq - posLogo - 50;
+            $(".pesquisa_input_holder").width(totalBarraPesq);
+
+            if ($(".pesquisa").hasClass("open")) {
+                $(".pesquisa").removeClass("open");
+                $(".pesquisa_input_holder").css("display", "none");
+                $(".main_menu").css("display", "inline-block");
+            } else {
+                $(".main_menu").css("display", "none");
+                $(".pesquisa_input_holder").css("display", "inline-block");
+                $(".pesquisa").addClass("open");
+                $(".pesquisa_input_holder input").width(totalBarraPesq - $(".lnk_pesquisar").outerWidth() - 20).focus();
+            }
+        })
+        $(".cliente_drop_lbl").click(function (e) {
+
+            if ($(this).hasClass("open")) {
+                e.preventDefault();
+                $(this).removeClass("open");
+                $(".login_drop").slideUp();
+
+            } else if ($(".login_drop").children().length > 0) {
+                e.preventDefault();
+                $(this).addClass("open");
+                $(".login_drop").slideDown();
+
+                setTimeout(function () {
+                    $(".login_drop").slideUp();
+                    $(this).removeClass("open");
+                }, 15000)
+            }
+        });
+
+        $(".validator").each(function () { if ($(this).find(".erroMark").length == 0) { $(this).html("<span class='erroMark'>*</span><span class='erroDetail'>" + $(this).text() + "</span>"); } })
+
+        $(".validInt").keypress(function (e) { return inputLimiter(e, 'int'); });
+
+    },
+    bindInputHandler: function () {
+
+        $(".input[type=text], textarea.input").each(function () {
+            setInputLabelPrefx($(this));
+        })
+
+        $(".input[type=text],textarea.input").blur(function () {
+            setInputLabelPrefx($(this))
+        }).focus(function () {
+            var label = $(this).closest(".linha").find(".formLabel").text() + ": ",
+                valor = $(this).val().replace(label, "");
+            $(this).val(valor);
+        })
+        function setInputLabelPrefx(obj) {
+
+            var parentHolder = obj.closest(".linha"),
+                nrFilhos = parentHolder.find(".input_holder").length,
+                indexPai = obj.closest(".input_holder").index(),
+                label = parentHolder.find(".formLabel").text(),
+                valor = obj.val();
+
+            if (valor != "" && label != "" && indexPai < 2) {
+
+                if (valor.indexOf(label) != 0) {
+                    obj.val(label + ": " + valor);
+                }
+            }
+        }
+
+    },
+    initMasterResize: function () {
+
+        $(window).resize(function () {
+            var largura = $(window).width();
+            if (largura < 700) {
+                $('html').removeClass('large').removeClass('normal').removeClass('small').addClass('mini');
+            }
+            else if (largura >= 700 && largura < 1100) {
+                $('html').removeClass('large').removeClass('normal').removeClass('mini').addClass('small');
+            }
+            else if (largura >= 1100 && largura < 1600) {
+                $('html').removeClass('small').removeClass('large').removeClass('mini').addClass('normal');
+            }
+            else {
+                $('html').removeClass('small').removeClass('normal').removeClass('mini').addClass('large');
+            }
+        }).resize();
+
+    },
+
+    initCookies: function () {
+        if (/MSIE (\d+\.\d+);/.test(navigator.userAgent)) {
+            var ieversion = new Number(RegExp.$1);
+            if (ieversion <= 7) { $("#checkbrowser").stop().slideToggle("slow"); }
+        }
+
+        $(".update_browser").click(function () {
+            $(".browser_splash").fadeIn("fast");
+        });
+        $("#lnk_browser").click(function () {
+            $(".browser_splash").fadeOut("fast");
+        });
+
+        // cookies
+        if (document.cookie.indexOf("politicaCookies") < 0) {
+            $(".cookies_container").fadeIn();
+            $(".masterpage_menu").css({ top: '59px' });
+        }
+        $("#fom").click(function () {
+            $(".cookies_mais_info").fadeIn("slow");
+            $(".cookies_container").fadeOut("fast");
+        });
+        $("#maisn_info_close").click(function () {
+            $(".cookies_container").fadeIn("fast");
+            $(".cookies_mais_info").fadeOut("slow");
+        });
+        $('.cookies_button').click(function () {
+            var expire = new Date();
+            expire.setDate(expire.getDate() + 360);
+            document.cookie = "politicaCookies=ok;path=/;expires=" + expire;
+            $(".cookies_container").fadeOut("fast");
+            $(".masterpage_menu").animate({ top: '19px' });
+        });
+    }
+}
+
+var homePage = {
+    init: function () {
+        'use strict'
+
+        var self = this,
+            nrNoticias = $(".slider_noticias .item_noticias").length,
+            itensPorPainel = 3,
+            nrPaineis = Math.ceil(nrNoticias / itensPorPainel),
+            container = null,
+            counter = 0,
+
+            nrBanners = $(".banner_home .item_banner").length;
+        if (nrNoticias == 1) {
+            $(".slider_noticias .item_noticias").addClass("single");
+        } else if (nrNoticias == 2) {
+            $(".slider_noticias .item_noticias").addClass("double");
+        }
+
+        $(".slider_noticias .item_noticias").each(function () {
+            if (counter % itensPorPainel === 0) {
+                container = $("<div class='slideItem'/>");
+                $(".slider_noticias").append(container);
+            }
+            container.append($(this));
+            counter++;
+        })
+        if (nrPaineis > 1) {
+            $(".slider_noticias").slidesjs({
+                width: 980,
+                height: 420,
+                callback: {
+                    loaded: function (number) {
+                        self.gereSetasGaleria(number, nrPaineis);
+                    },
+                    start: function (number) { },
+                    complete: function (number) {
+                        self.gereSetasGaleria(number, nrPaineis);
+                    }
+                }
+            });
+        }
+        if (nrBanners > 1) {
+            $(".banner_home_holder").slidesjs({
+                width: 1920,
+                height: 700,
+                pagination: {
+                    active: false
+                }, navigation: {
+                    active: false
+                },
+                play: {
+                    active: true,
+                    effect: "slide",
+                    interval: 7000,
+                    auto: true
+                }
+            });
+        }
+    },
+    gereSetasGaleria: function (numeroAtual, total) {
+        'use strict'
+
+        $(".slidesjs-next,.slidesjs-previous").show();
+        if (numeroAtual === total) {
+            $(".slidesjs-next").hide();
+        } else if (numeroAtual === 1) {
+            $(".slidesjs-previous").hide();
+        }
+    },
+    loadMap: function () {
+        'use strict'
+
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = 'https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&' +
+        'callback=homePage.loadMaMapa';
+        document.body.appendChild(script);
+    },
+    loadMaMapa: function () {
+        'use strict'
+
+        $.getScript("/js/jquery.ma.mapa.js")
+            .done(function (script, textStatus) {
+                homePage.initMapa();
+            })
+            .fail(function (jqxhr, settings, exception) {
+                $(".mapa_home").slideUp();
+            });
+    },
+    initMapa: function () {
+        'use strict'
+        $("#mapa_holder").maMapa({
+            altura: '520px',
+            largura: '1024px',
+            direccoes: false,
+            pinsDiferentes: false,
+            abrePopups: false,
+            seccao: "ref",
+            pinCenterPosition: [21, 36],
+            mapOptions: {
+                scrollwheel: false,
+                panControl: false,
+                zoomControl: false,
+                mapTypeControl: false,
+                draggable: false,
+                styles: [{ "stylers": [{ "invert_lightness": true }, { "visibility": "simplified" }, { "saturation": -100 }, { "lightness": -4 }] }, { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#00a8f9" }, { "visibility": "on" }] }, { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] }]
+            },
+            marcadores: referencesJson,
+            onBuildComplete: function (marcadores, mapa) {
+
+                mapa.setZoom(2);
+                mapa.panBy(0, -200);
+            },
+        });
+    }
+}
+
+var cliente = {
+    init: function () {
+        $(".lbl_menu").click(function () {
+            if ($("html").hasClass("mini") || $("html").hasClass("small")) {
+                var obj = $(".menu_cliente_itens"),
+                    valorAltura = 0;
+                if (obj.hasClass("open")) {
+
+                    obj.removeClass("open");
+                } else {
+                    obj.addClass("open");
+                    obj.css("height", "auto");
+                    valorAltura = obj.height();
+                    obj.height(0);
+                }
+                obj.animate({ height: valorAltura }, 300);
+            }
+        })
+    }
+}
+
+var references = {
+    loadMap: function () {
+        'use strict'
+
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = 'https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&' +
+        'callback=references.loadMaMapa';
+        document.body.appendChild(script);
+    },
+    loadMaMapa: function () {
+        'use strict'
+
+        $.getScript("/js/jquery.ma.mapa.js")
+            .done(function (script, textStatus) {
+                references.initMapa();
+            })
+            .fail(function (jqxhr, settings, exception) {
+                $(".mapa_home").slideUp();
+            });
+    },
+    initMapa: function () {
+        'use strict'
+        var maps = $(".mapa").maMapa({
+            altura: '620px',
+            largura: '100%',
+            direccoes: false,
+            pinsDiferentes: false,
+            abrePopups: true,
+            seccao: "ref",
+            pinCenterPosition: [21, 36],
+            mapOptions: {
+                scrollwheel: false,
+                panControl: false,
+                zoomControl: false,
+                mapTypeControl: false,
+                //draggable: false,
+                styles: [{ "stylers": [{ "invert_lightness": true }, { "visibility": "simplified" }, { "saturation": -100 }, { "lightness": -4 }] }, { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#00a8f9" }, { "visibility": "on" }] }, { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] }]
+            },
+            marcadores: referencesJson,
+            onBuildComplete: function (marcadores, mapa) {
+
+                mapa.setZoom(2);
+                mapa.panBy(0, -100);
+
+
+                /* $(window).resize(function () {
+                     var largura = $(window).width();
+                     if (largura < 700) {
+                         mapa.op
+                     }
+                     else if (largura >= 700 && largura < 1100) {
+                         mapa.setZoom(1);
+                     }
+                     else {
+                         maps.setZoom(2);
+                     }
+ 
+                 })*/
+
+            },
+        });
+
+
+
+
+    }
+}
+
+var newsList = {
+    init: function () {
+
+        $(".lnk_less").click(function (e) {
+            e.preventDefault();
+            $(this).addClass("loading");
+            newsList.getPage(-1, function (objs) {
+                $(".noticias_block").prepend(objs);
+                newsList.animateObjs(objs);
+                $(".lnk_more,.lnk_less").removeClass("loading");
+            });
+        })
+
+        $(".lnk_more").click(function (e) {
+            e.preventDefault();
+            $(this).addClass("loading");
+            newsList.getPage(1, function (objs) {
+                $(".noticias_block .clear").before(objs);
+                newsList.animateObjs(objs);
+                $(".lnk_more,.lnk_less").removeClass("loading");
+            });
+        })
+    },
+    getPage: function (direction, callback) {
+
+        var nrPagina = 0,
+            objs = null;
+
+        if (direction > 0) {
+            nrPagina = parseInt($("#hf_page_max").val(), 10) + 1;
+        } else {
+            nrPagina = parseInt($("#hf_page_min").val(), 10) - 1;
+        }
+
+        $.ajax({
+            dataType: "json",
+            url: "/api/Api.svc/news/get/" + nrPagina,
+            success: function (dados) {
+
+                if (direction > 0) {
+                    $("#hf_page_max").val(dados.pagina);
+
+                    if (dados.next) {
+                        $(".lnk_more").show();
+                    } else {
+                        $(".lnk_more").hide();
+                    }
+                } else {
+                    $("#hf_page_min").val(dados.pagina);
+
+                    if (dados.prev) {
+                        $(".lnk_less").show();
+                    } else {
+                        $(".lnk_less").hide();
+                    }
+                }
+
+                objs = newsList.buildItens(dados.noticias);
+                callback(objs);
+            }
+        });
+    },
+    buildItens: function (array) {
+
+        var nrNoticias = array.length,
+            objs = [];
+
+        for (var i = 0; i < nrNoticias; i++) {
+            var templateCopy = newsList.template,
+                dadosI = array[i],
+                objeto = null;
+
+            templateCopy = templateCopy.replace(/{{url}}/gi, dadosI.url);
+            templateCopy = templateCopy.replace(/{{nome}}/gi, dadosI.titulo);
+            templateCopy = templateCopy.replace(/{{img}}/gi, dadosI.img);
+            templateCopy = templateCopy.replace(/{{resumo}}/gi, dadosI.resumo);
+            templateCopy = templateCopy.replace(/{{data}}/gi, dadosI.data);
+            templateCopy = templateCopy.replace(/{{more}}/gi, dadosI.more);
+
+            objeto = $(templateCopy);
+            objeto.css("display", "none").css("opacity", "0");
+
+            objs.push(objeto);
+        }
+        return objs;
+    },
+    animateObjs: function (arrayObjs, index) {
+        var nrObjs = arrayObjs.length;
+
+        if (index == null) {
+            index = 0;
+        }
+        if (index < nrObjs) {
+            arrayObjs[index].css("display", "inline-block").animate({ opacity: 1 }, 300, function () {
+                newsList.animateObjs(arrayObjs, ++index);
+            })
+        }
+    },
+    template: '<div class="item_noticias ffLight">' +
+                    '<div class="imagem"><a href="{{url}}"><img  title="{{nome}}" alt="{{nome}}" src="{{img}}"></a></div>' +
+                    '<a title="{{nome}}" class="lnk_nome" href="{{url}}">{{nome}}</a>' +
+                    '<span class="lbl_resumo">{{resumo}}</span>' +
+                    '<div class="footer_news"><span class="lbl_data">{{data}}</span><a title="{{nome}}" class="lnk_mais ffBold" href="{{url}}">+ {{more}}</a></div>' +
+                '</div>'
+}
+
+var newsShow = {
+    init: function () {
+        $(".galeria_show").slidesjs({
+            width: 660,
+            height: 640,
+            navigation: {
+                active: false
+            }
+        });
+    }
+}

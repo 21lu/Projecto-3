@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Iniciar Sessão</title>
+        <link rel="stylesheet" href="StyleLogin.css">
+    </head>
+    <body>
+        <div class="loginContainer">
+            <h2>Login - VisiPanel</h2>
+            <form action="#" method="post">
+                <div class="form-group">
+                <label for="email">E-mail:</label>
+                <input type="email" id="email" name="email" onchange="validateFields()" >
+                </div>
+                <div class="form-group">
+                <label for="password">Senha:</label>
+                <input type="password" id="password" name="password" onchange="validateFields()">
+                </div>
+                <div class="form-group">
+                    <button type="button" id="recover-password-button" disabled="true" onclick="login()">Recuperar Senha</button>
+                </div>
+                <div class="form-group">
+                <button type="button" id="login-button" disabled="true" onclick="login()"> Entrar</button>
+                </div>
+                <div class="form-group">
+                    <button type="button" onclick="register()" >Registar</button>
+                </div>
+            </form>
+        </div>
+    </body>
+    <script src="Script/index.js" ></script>
+    <script src="Script/validation.js"></script>
+    <script src="Script/loading.js" ></script>
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDuwXSV4942uczakfc7b0tlvhBLgujJio8",
+            authDomain: "paineis-51f7b.firebaseapp.com",
+            databaseURL: "https://paineis-51f7b-default-rtdb.firebaseio.com",
+            projectId: "paineis-51f7b",
+            storageBucket: "paineis-51f7b.appspot.com",
+            messagingSenderId: "955914761451",
+            appId: "1:955914761451:web:ee697c01ae8caf0c86baae",
+            measurementId: "G-QB9VBJ7V2N"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+</html>
